@@ -8,6 +8,7 @@
 #include "llvm/IR/Metadata.h"
 #include <map>
 #include <list> 
+#include "llvm/IR/Constants.h"
 using namespace llvm;
 
 namespace {
@@ -16,10 +17,10 @@ namespace {
     SkeletonPass() : FunctionPass(ID) {}
 
     void merge_chains(BasicBlock *start, BasicBlock *end, std::map<BasicBlock*, BasicBlock*>* chains, std::map<BasicBlock*, bool> * start_blocks){
-        errs() << (*start_blocks)[end] << "\n";
-        errs() << ((*chains)[start] == start) << "\n";
+   
         if((*start_blocks)[end] && (*chains)[start] == start) {
-           errs() << "merged \n";
+            // errs() << "merge start " << *start << "!\n";
+            // errs() << "merge end " << *end << "!\n";
            (*start_blocks)[end] = false;
            (*chains)[start] = end;
         }
@@ -35,14 +36,14 @@ namespace {
           chains[b] = b; 
           start_blocks[b] = true; 
           Instruction *terminator = b -> getTerminator();
-          errs() << "ter " << *(terminator) << "!\n";
           
           BasicBlock * parent = terminator -> getParent();
+          MDNode * prof_n = terminator -> getMetadata("prof") ;
           uint n = terminator -> getNumSuccessors();
-          if (terminator -> hasMetadata()){
+          if (terminator -> hasMetadata() and prof_n and (prof_n->getNumOperands() == n + 1)){
             for(int i =0; i < n ; i ++ ) {
-              // errs() << "prof " << *cast<ConstantAsMetadata>(terminator -> getMetadata("prof") -> getOperand(i+1))) << "!\n";
-              // errs() << "prof " << *(terminator-> getSuccessor(i)) << "!\n";
+              uint weight =  mdconst::dyn_extract<ConstantInt>(prof_n -> getOperand(i+1))->getZExtValue();
+              
               prof_edges.push_back({i, parent, terminator-> getSuccessor(i)});
             }
           } else if(terminator -> getNumSuccessors () > 0) {
@@ -76,21 +77,21 @@ namespace {
           if(start_blocks[b]) {
             // start of a chain
             BasicBlock *curr = b; 
-            while (true) {
-                errs() << "blocks " << *curr << "!\n";
+            while (true) {                
                 if (&*InsertPos != curr) {
                   all_blocks.splice(InsertPos, all_blocks, curr);
                   moved += 1;
                 }
                 InsertPos++;
-                if (curr == chains[curr]) 
-                  break;
-                else curr = chains[curr];
+                BasicBlock *next = chains[curr];
+                if(curr == next) break;
+                curr = next;
             }
           }
         }
-        
-        
+        // for (auto &B: F) {
+        //   errs() << "final blocks " << B << "!\n";
+        // }
         
         return moved > 0;
     }
