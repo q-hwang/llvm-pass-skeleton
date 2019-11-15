@@ -47,13 +47,13 @@ namespace {
             BasicBlock *next = chains[curr];
 
             Instruction * terminator = curr -> getTerminator();
-            MDNode * prof_n = terminator -> getMetadata("prof") ;
-            uint n = terminator -> getNumSuccessors();
-            if (dyn_cast <BranchInst> ( terminator) or dyn_cast <SwitchInst> (terminator)) {
+            if (terminator -> hasMetadata() and (dyn_cast <BranchInst> ( terminator) or dyn_cast <SwitchInst> (terminator))) {
+                MDNode * prof_n = terminator -> getMetadata("prof") ;
+                uint n = terminator -> getNumSuccessors();
                 for(int i =0; i < n ; i ++ ) {
                    BasicBlock * succ = terminator -> getSuccessor(i);
                    uint weight =  mdconst::dyn_extract<ConstantInt>(prof_n -> getOperand(i+1))->getZExtValue();
-                   if( succ != next && start_blocks[succ] &&weight > max_cross_weight) {
+                   if( succ != next and start_blocks[succ] and weight > max_cross_weight) {
                      next_start_block = succ;
                      max_cross_weight = weight;
                    }
