@@ -29,6 +29,43 @@ namespace {
         }
         return;
     }
+
+    BasicBlock* insert_chain(BasicBlock *start, std::map<BasicBlock*, bool> &start_blocks, std::map<BasicBlock*, BasicBlock*> &chains, Function::iterator & InsertPos, Function::BasicBlockListType &all_blocks, uint* moved){
+        BasicBlock *next_start_block = nullptr;
+        uint max_cross_weight = 0;
+
+        BasicBlock *curr = start; 
+        while (true) {       
+            // insert      
+            if (&*InsertPos != curr) {
+                all_blocks.splice(InsertPos, all_blocks, curr);
+              moved += 1;
+            } else{
+              InsertPos ++;
+            }
+            start_blocks[curr] = false;
+            BasicBlock *next = chains[curr];
+
+            Instruction * terminator = curr -> getTerminator();
+            MDNode * prof_n = terminator -> getMetadata("prof") ;
+            uint n = terminator -> getNumSuccessors();
+            if (dyn_cast <BranchInst> ( terminator) or dyn_cast <SwitchInst> (terminator)) {
+                for(int i =0; i < n ; i ++ ) {
+                   BasicBlock * succ = terminator -> getSuccessor(i);
+                   uint weight =  mdconst::dyn_extract<ConstantInt>(prof_n -> getOperand(i+1))->getZExtValue();
+                   if( succ != next && start_blocks[succ] &&weight > max_cross_weight) {
+                     next_start_block = succ;
+                     max_cross_weight = weight;
+                   }
+                }
+            }
+
+            if(curr == next) break;
+            curr = next;
+        }
+        return next_start_block;
+    }
+
       virtual bool runOnFunction(Function &F) {
         std::map<BasicBlock*, BasicBlock*> chains;
         std::map<BasicBlock*, bool> start_blocks;
@@ -87,30 +124,18 @@ namespace {
         Function::BasicBlockListType &all_blocks = F.getBasicBlockList();
         Function::iterator InsertPos = F.begin();
         unsigned moved = 0;
-        bool start = true;
+        
+        BasicBlock *start_block = &F.getEntryBlock();
+        while(start_block != nullptr) {
+          start_block = insert_chain(start_block, start_blocks, chains, InsertPos, all_blocks, &moved);
+        }
    
         std::vector<BasicBlock*>::iterator b_it =v_blocks.begin();
         while (b_it != v_blocks.end()) {
-
           BasicBlock *b = *b_it;
-
           if(start_blocks[b]) {
             // start of a chain
- 
-            BasicBlock *curr = b; 
-            while (true) {             
-                if (&*InsertPos != curr) {
-                   all_blocks.splice(InsertPos, all_blocks, curr);
-                  moved += 1;
-                } else{
-                  InsertPos ++;
-                }
-                start_blocks[curr] = false;
-               
-                BasicBlock *next = chains[curr];
-                if(curr == next) break;
-                curr = next;
-            }
+            insert_chain(b, start_blocks, chains, InsertPos, all_blocks, &moved);
           }
           b_it ++;
         }
@@ -119,6 +144,7 @@ namespace {
     }
   };
 }
+
 
 
 char SkeletonPass::ID = 0;
