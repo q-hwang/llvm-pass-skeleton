@@ -53,7 +53,8 @@ esac
 # Compilers and preprocessors
 export CC="${CC_HOME}/bin/clang-9"
 export CXX="${CC_HOME}/bin/clang++-9"
-export CPP="${CC_HOME}/bin/clang-cpp-9"
+export CXX="/home/qian/llvm-pass-skeleton/parsec-3.0/bin/clang-opt.sh"
+# export CPP="${CC_HOME}/bin/clang-cpp-9"
 export CXXCPP=""
 
 

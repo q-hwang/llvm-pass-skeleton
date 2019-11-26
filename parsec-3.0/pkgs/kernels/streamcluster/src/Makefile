@@ -22,7 +22,7 @@ all: $(OBJS)
 %.o : %.cpp
 	# $(eval LL=$(@:.ll=.cpp))
 	# $(CXX) $(CXXFLAGS) -S -emit-llvm -fprofile-instr-use=/home/qian/llvm-pass-skeleton/profile/code.profdata $< -o $(@:.o=.ll)
-	# opt-9  -load /home/qian/llvm-pass-skeleton/build/skeleton/libSkeletonPass.* -skeleton -S $(@:.o=.ll) -o $(@:.o=_.ll)
+	# opt-9 --gvn  --simplifycfg --loop-unroll --loop-rotate --licm --tailcallelim --constprop --dce --loop-deletion --loop-fusion --loop-simplify  -S $(@:.o=.ll) -o $(@:.o=_.ll)
 	# $(CXX) $(CXXFLAGS) -c $(@:.o=_.ll) -o $@
 	$(CXX) $(CXXFLAGS) -c $<
 

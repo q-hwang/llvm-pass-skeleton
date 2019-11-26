@@ -29,7 +29,7 @@ then
     fi
 fi
 
-
+OPT=`cat /home/qian/llvm-pass-skeleton/parsec-3.0/bin/opt.txt`
 if [ -z "$FILE" ]
 then
     echo "$COMPILER $ARGS -o $OUT"
@@ -37,8 +37,8 @@ then
 else
     echo "$COMPILER $ARGS -S -emit-llvm $FILE -o ${FILE%.*}.ll"
 	eval "$COMPILER $ARGS -S -emit-llvm $FILE -o ${FILE%.*}.ll"
-    echo "opt-9 --gvn  -S ${FILE%.*}.ll -ogit  ${FILE%.*}_.ll"
-	eval "opt-9 --gvn  -S ${FILE%.*}.ll -o ${FILE%.*}_.ll"
+    echo "opt-9 $OPT -S ${FILE%.*}.ll -ogit  ${FILE%.*}_.ll"
+	eval "opt-9 $OPT -S ${FILE%.*}.ll -o ${FILE%.*}_.ll"
     echo "$COMPILER $ARGS -c ${FILE%.*}_.ll -o $OUT"
 	eval "$COMPILER $ARGS -c ${FILE%.*}_.ll -o $OUT"
 fi
