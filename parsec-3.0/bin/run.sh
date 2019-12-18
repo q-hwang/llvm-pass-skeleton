@@ -1,6 +1,6 @@
 #!/bin/bash
 BUILD_DIR="/home/qian/llvm-pass-skeleton/parsec-3.0/pkgs/kernels/streamcluster/inst/amd64-linux.gcc"
-comb=50
+comb=${1}
 for i in `seq 1 $comb`;
 do
     echo "$i"
@@ -9,7 +9,7 @@ do
         #echo 'rm build dir'
         rm -r "$BUILD_DIR"
     fi
-    cat opt_all.txt | python3.7 order_gen.py 270 > opt.txt
+    cat opt_all.txt | python3.7 order_gen.py ${2} > opt.txt
 
     parsecmgmt -a build -c gcc -p streamcluster > "/dev/null"
     n=10
