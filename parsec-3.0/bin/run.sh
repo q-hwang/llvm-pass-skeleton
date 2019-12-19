@@ -12,7 +12,7 @@ do
     cat opt_all.txt | python3.7 order_gen.py ${2} > opt.txt
 
     parsecmgmt -a build -c gcc -p streamcluster > "/dev/null"
-    n=10
+    n=1
     f_all=0.0
     u_all=0.0
     s_all=0.0
