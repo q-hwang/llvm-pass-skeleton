@@ -43,10 +43,16 @@ def eval_opt(opts):
 if __name__ == '__main__':
     l = sys.stdin.read().split()
     n = int(sys.argv[1])
-    # indices = rand_gen(len(l), n)
-    # print(" ".join([l[i] for i in indices]))
+    if len(sys.argv) < 3 or sys.argv[2] == "random":
+        print("random")
+        indices = rand_gen(len(l), n)
+        print(" ".join([l[i] for i in indices]))
+    elif sys.argv[2] == "hill":
+        print("hill")
+        print(" ".join(hill_climb(l, n)))
+    else:
+        print("method not found")
 
-    print(" ".join(hill_climb(l, n)))
 
 
     
